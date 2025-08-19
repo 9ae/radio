@@ -13,7 +13,6 @@ const SpotifyAuth = ({ onLogin }) => {
         </button>
         <div className="auth-note">
           <p><strong>Note:</strong> You'll need a Spotify Premium account to use the playback features.</p>
-          <p>Make sure to update the CLIENT_ID in App.js with your Spotify app's client ID.</p>
         </div>
       </div>
     </div>
