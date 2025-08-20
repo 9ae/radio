@@ -14,6 +14,15 @@ body {
 .App {
   min-height: 100vh;
   padding: 20px;
+  width: 90%;
+  margin: 0 auto;
+}
+
+@media (min-width: 500px) {
+  .App {
+    max-width: 600px;
+    width: 100%;
+  }
 }
 
 .App-header {
@@ -80,7 +89,7 @@ body {
 
 /* App Content */
 .app-content {
-  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -237,7 +246,7 @@ body {
   border-radius: 10px;
   padding-right: 5px;
   margin-bottom: 30px;
-  
+
   /* Custom scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(29, 185, 84, 0.6) rgba(255, 255, 255, 0.1);
@@ -473,7 +482,8 @@ body {
   color: white;
 }
 
-.control-btn:hover, .play-pause-btn:hover {
+.control-btn:hover,
+.play-pause-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
 }
@@ -490,38 +500,39 @@ body {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 499px) {
   .App {
+    width: 90%;
     padding: 15px;
   }
-  
+
   .App-header h1 {
     font-size: 2rem;
   }
-  
+
   .auth-content {
     padding: 30px 20px;
   }
-  
+
   .playlist-container {
     padding: 20px;
   }
-  
+
   .track-item {
     padding: 10px;
   }
-  
+
   .track-image {
     width: 40px;
     height: 40px;
     margin: 0 10px;
   }
-  
+
   .current-track {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .track-details {
     text-align: center;
   }
@@ -529,11 +540,11 @@ body {
   .search-controls {
     flex-direction: column;
   }
-  
+
   .search-input {
     min-width: 100%;
   }
-  
+
   .search-btn {
     width: 100%;
   }
@@ -541,6 +552,22 @@ body {
   .track-list-container {
     max-height: 50vh;
     min-height: 300px;
+  }
+}
+
+@media (min-width: 500px) and (max-width: 768px) {
+  .App {
+    max-width: 600px;
+    padding: 20px;
+  }
+
+  .playlist-container {
+    padding: 25px;
+  }
+
+  .track-list-container {
+    max-height: 55vh;
+    min-height: 400px;
   }
 }
 
