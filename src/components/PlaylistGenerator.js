@@ -175,7 +175,12 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
         loading={loading}
       />
 
-      <CurrentTrackDisplay currentTrackInfo={currentTrackInfo} />
+      <CurrentTrackDisplay 
+        currentTrackInfo={currentTrackInfo} 
+        tracks={tracks}
+        onPlayFirstTrack={playTrack}
+        currentTrack={currentTrack}
+      />
 
       <TrackList
         tracks={tracks}
