@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SearchSection from './SearchSection';
 import CurrentTrackDisplay from './CurrentTrackDisplay';
 import TrackList from './TrackList';
@@ -13,6 +13,61 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMoreTracks, setHasMoreTracks] = useState(true);
   const [totalTracks, setTotalTracks] = useState(0);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
+
+  // Auto-play next track functionality
+  useEffect(() => {
+    if (!player) return;
+
+    const handlePlayerStateChange = (state) => {
+      if (!state) return;
+
+      setIsPlayerReady(true);
+      
+      // Check if track has ended (position is 0 and paused after playing)
+      if (state.paused && state.position === 0 && state.track_window.current_track) {
+        const finishedTrackId = state.track_window.current_track.id;
+        
+        // Only auto-play if this was the track we were tracking
+        if (finishedTrackId === currentTrack) {
+          playNextTrack();
+        }
+      }
+    };
+
+    player.addListener('player_state_changed', handlePlayerStateChange);
+
+    return () => {
+      player.removeListener('player_state_changed', handlePlayerStateChange);
+    };
+  }, [player, currentTrack, tracks]);
+
+  const playNextTrack = async () => {
+    if (!tracks.length || !currentTrack) return;
+
+    const currentIndex = tracks.findIndex(t => t.id === currentTrack);
+    if (currentIndex === -1) return;
+
+    const nextIndex = currentIndex + 1;
+    
+    // Check if we need to fetch more tracks
+    if (nextIndex >= tracks.length - 3 && hasMoreTracks) {
+      await fetchNextPage();
+    }
+
+    // Get updated tracks after potential fetch
+    const updatedTracks = tracks;
+    
+    if (nextIndex < updatedTracks.length) {
+      // Play next track
+      const nextTrack = updatedTracks[nextIndex];
+      await playTrack(nextTrack);
+    } else {
+      // No more tracks, stop playback
+      setCurrentTrack(null);
+      console.log('Playlist ended - no more tracks to play');
+    }
+  };
 
   const handleKeywordChange = (e) => {
     setSearchKeyword(e.target.value);
