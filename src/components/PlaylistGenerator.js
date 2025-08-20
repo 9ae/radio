@@ -49,7 +49,7 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
 
       // Find the current track index
       const currentTrackIndex = tracks.findIndex(t => t.id === track.id);
-      
+
       // Check if we're near the end of the current track list and fetch next page
       // Fetch when we're playing one of the last 3 tracks and have more tracks available
       if (currentTrackIndex >= tracks.length - 3 && hasMoreTracks) {
@@ -60,7 +60,7 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
       if (currentTrackIndex > 3) {
         cleanupTrackList(currentTrackIndex);
       }
-      
+
     } catch (error) {
       console.error('Error playing track:', error);
       alert('Could not play track. Make sure you have Spotify Premium.');
@@ -79,7 +79,7 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
       setCurrentOffset(0);
       setCurrentTrack(null);
     }
-    
+
     try {
       const searchUrl = new URL('https://api.spotify.com/v1/search');
       searchUrl.searchParams.set('q', searchKeyword.trim());
@@ -87,22 +87,22 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
       searchUrl.searchParams.set('limit', PAGE_SIZE.toString());
       searchUrl.searchParams.set('offset', offset.toString());
       searchUrl.searchParams.set('market', 'US');
-      
+
       const response = await fetch(searchUrl.toString(), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`API Error: ${response.status}`);
       }
-      
+
       const data = await response.json();
       if (data.tracks && data.tracks.items && data.tracks.items.length > 0) {
         setTotalTracks(data.tracks.total);
         setHasMoreTracks(data.tracks.items.length === PAGE_SIZE && offset + PAGE_SIZE < data.tracks.total);
-        
+
         if (append) {
           setTracks(prevTracks => [...prevTracks, ...data.tracks.items]);
           setCurrentOffset(offset);
@@ -129,7 +129,7 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
 
   const fetchNextPage = async () => {
     if (!hasMoreTracks || loading) return;
-    
+
     const nextOffset = currentOffset + PAGE_SIZE;
     await searchTracks(nextOffset, true);
   };
@@ -149,10 +149,26 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
     return `${minutes}:${seconds.padStart(2, '0')}`;
   };
 
+  const getCurrentTrackInfo = () => {
+    if (currentTrack) {
+      const track = tracks.find(t => t.id === currentTrack);
+      if (track) {
+        return {
+          title: track.name,
+          artist: track.artists.map(artist => artist.name).join(', '),
+          image: track.album.images[0]?.url || track.album.images[1]?.url
+        };
+      }
+    }
+    return null;
+  };
+
+  const currentTrackInfo = getCurrentTrackInfo();
+
   return (
     <div className="playlist-generator">
       <div className="search-section">
-        <h3>🔍 Search for Tracks</h3>
+        <h3><span>🔍</span> Search for Tracks</h3>
         <p>Enter a keyword, artist, or song name to search for music</p>
         <div className="search-controls">
           <input
@@ -161,15 +177,34 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
             placeholder="e.g., jazz, chill vibes, The Beatles, love songs..."
             value={searchKeyword}
             onChange={handleKeywordChange}
-            onKeyPress={(e) => e.key === 'Enter' && searchTracks(0, false)}
+            onKeyDown={(e) => e.key === 'Enter' && searchTracks(0, false)}
           />
-          <button 
+          <button
             className="search-btn"
             onClick={() => searchTracks(0, false)}
             disabled={loading || !searchKeyword.trim()}
           >
-            {loading ? 'Searching...' : '🎵 Search Tracks'}
+            <span>🎵</span>
+            {loading ? 'Searching...' : 'Search Tracks'}
           </button>
+        </div>
+      </div>
+
+      <div className="current-track">
+        <div className={`circular-artwork ${!currentTrackInfo ? 'default' : ''}`}>
+          {currentTrackInfo?.image ? (
+            <img src={currentTrackInfo.image} alt="Current track artwork" />
+          ) : (
+            <div style={{ color: 'white', fontSize: '2rem' }}>🎵</div>
+          )}
+        </div>
+        <div className="current-playing-info">
+          <div className="track-title">
+            {currentTrackInfo?.title || 'Currently playing song title'}
+          </div>
+          <div className="track-artist">
+            {currentTrackInfo?.artist || 'Artist name'}
+          </div>
         </div>
       </div>
 
@@ -178,15 +213,14 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
           <div className="playlist-header">
             <h2>Search Results</h2>
             <p>Showing {tracks.length} of {totalTracks.toLocaleString()} tracks for "{searchKeyword}"</p>
-            {hasMoreTracks && <p className="preview-hint">📱 More tracks will load automatically as you play</p>}
-            <p className="preview-hint">🎵 Click on tracks to play with Spotify Web Player</p>
+            <p className="preview-hint">Click on tracks to play with Spotify Web Player</p>
           </div>
-          
+
           <div className="track-list-container">
             <div className="track-list">
               {tracks.map((track, index) => (
-                <div 
-                  key={track.id} 
+                <div
+                  key={track.id}
                   className={`track-item ${currentTrack === track.id ? 'playing' : ''}`}
                   onClick={() => playTrack(track)}
                 >
