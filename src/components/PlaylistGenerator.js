@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import SearchSection from './SearchSection';
+import CurrentTrackDisplay from './CurrentTrackDisplay';
+import TrackList from './TrackList';
 
 const PAGE_SIZE = 20;
 
@@ -143,12 +146,6 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
     });
   };
 
-  const formatDuration = (ms) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = ((ms % 60000) / 1000).toFixed(0);
-    return `${minutes}:${seconds.padStart(2, '0')}`;
-  };
-
   const getCurrentTrackInfo = () => {
     if (currentTrack) {
       const track = tracks.find(t => t.id === currentTrack);
@@ -163,99 +160,31 @@ const PlaylistGenerator = ({ token, player, deviceId }) => {
     return null;
   };
 
+  const handleSearch = () => {
+    searchTracks(0, false);
+  };
+
   const currentTrackInfo = getCurrentTrackInfo();
 
   return (
     <div className="playlist-generator">
-      <div className="search-section">
-        <h3><span>🔍</span> Search for Tracks</h3>
-        <p>Enter a keyword, artist, or song name to search for music</p>
-        <div className="search-controls">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="e.g., jazz, chill vibes, The Beatles, love songs..."
-            value={searchKeyword}
-            onChange={handleKeywordChange}
-            onKeyDown={(e) => e.key === 'Enter' && searchTracks(0, false)}
-          />
-          <button
-            className="search-btn"
-            onClick={() => searchTracks(0, false)}
-            disabled={loading || !searchKeyword.trim()}
-          >
-            <span>🎵</span>
-            {loading ? 'Searching...' : 'Search Tracks'}
-          </button>
-        </div>
-      </div>
+      <SearchSection
+        searchKeyword={searchKeyword}
+        onKeywordChange={handleKeywordChange}
+        onSearch={handleSearch}
+        loading={loading}
+      />
 
-      <div className="current-track">
-        <div className={`circular-artwork ${!currentTrackInfo ? 'default' : ''}`}>
-          {currentTrackInfo?.image ? (
-            <img src={currentTrackInfo.image} alt="Current track artwork" />
-          ) : (
-            <div style={{ color: 'white', fontSize: '2rem' }}>🎵</div>
-          )}
-        </div>
-        <div className="current-playing-info">
-          <div className="track-title">
-            {currentTrackInfo?.title || 'Currently playing song title'}
-          </div>
-          <div className="track-artist">
-            {currentTrackInfo?.artist || 'Artist name'}
-          </div>
-        </div>
-      </div>
+      <CurrentTrackDisplay currentTrackInfo={currentTrackInfo} />
 
-      {tracks.length > 0 && (
-        <div className="playlist-container">
-          <div className="playlist-header">
-            <h2>Search Results</h2>
-            <p>Showing {tracks.length} of {totalTracks.toLocaleString()} tracks for "{searchKeyword}"</p>
-            <p className="preview-hint">Click on tracks to play with Spotify Web Player</p>
-          </div>
-
-          <div className="track-list-container">
-            <div className="track-list">
-              {tracks.map((track, index) => (
-                <div
-                  key={track.id}
-                  className={`track-item ${currentTrack === track.id ? 'playing' : ''}`}
-                  onClick={() => playTrack(track)}
-                >
-                  <div className="track-number">{index + 1}</div>
-                  <div className="track-image">
-                    {track.album.images[2] && (
-                      <img src={track.album.images[2].url} alt={track.album.name} />
-                    )}
-                  </div>
-                  <div className="track-info">
-                    <div className="track-name">{track.name}</div>
-                    <div className="track-artist">
-                      {track.artists.map(artist => artist.name).join(', ')}
-                    </div>
-                    <div className="track-album">{track.album.name}</div>
-                  </div>
-                  <div className="track-controls">
-                    <div className="track-duration">
-                      {formatDuration(track.duration_ms)}
-                    </div>
-                    <div className="play-indicator">
-                      {currentTrack === track.id ? '⏸️' : '▶️'}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {loading && (
-                <div className="loading-indicator">
-                  <p>Loading more tracks...</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <TrackList
+        tracks={tracks}
+        currentTrack={currentTrack}
+        onTrackPlay={playTrack}
+        searchKeyword={searchKeyword}
+        totalTracks={totalTracks}
+        loading={loading}
+      />
     </div>
   );
 };
